@@ -20,45 +20,48 @@ class AnomalyClient {
   //*****************START****************
   def getRiskAnomaly(): JSONArray = {
     val connection: Connection = Common.getConnection()
-    val sql: String = """SELECT "key" AS "name", 
-       				TO_NUMBER("Risk") AS "value" 
-			 FROM "Dathena:RiskAnomaly""""
+    val sql: String =
+      """SELECT
+          "key" AS "name",
+          TO_NUMBER("Risk") AS "value"
+	 FROM "Dathena:RiskAnomaly""""
     val query: PreparedStatement = connection.prepareStatement(sql)
     val rst: ResultSet = query.executeQuery()
-    
+
     val jsonArray: JSONArray = new JSONArray()
     var documents: Long = 0
-    var users: Long = 0 
+    var users: Long = 0
     while (rst.next())
     {
-      if(!(rst.getString("name") contains "_"))
+      if (!(rst.getString("name") contains "_"))
       {
-         val jsonObject: JSONObject = new JSONObject()
-       	   .put("name", rst.getString("name"))
-           .put("value", rst.getLong("value"))
-		
-         if(rst.getString("name") == "access rights anomaly" || rst.getString("name") == "client data access anomaly")
-	     users = users + rst.getLong("value") 
+        val jsonObject: JSONObject = new JSONObject()
+          .put("name", rst.getString("name"))
+          .put("value", rst.getLong("value"))
 
-         jsonArray.put(jsonObject)
+        if (rst.getString("name") == "access rights anomaly" || rst.getString("name") == "client data access anomaly")
+        {
+          users = users + rst.getLong("value")
+        }
+
+        jsonArray.put(jsonObject)
       }
       else
       {
-	documents = documents + rst.getLong("value")
+        documents = documents + rst.getLong("value")
       }
     }
 
-    val tempMap: Map[String, Long] = Map("Users At Risk" -> users,"Documents Risk" -> documents) 
-    for((k,v) <- tempMap)
+    val tempMap: Map[String, Long] = Map("Users At Risk" -> users, "Documents Risk" -> documents)
+    for ((k, v) <- tempMap)
     {
-        val jsonObject: JSONObject = new JSONObject()
-          .put("name", k)
-          .put("value", v)
-                
-        jsonArray.put(jsonObject)
+      val jsonObject: JSONObject = new JSONObject()
+        .put("name", k)
+        .put("value", v)
+
+      jsonArray.put(jsonObject)
     }
 
-    rst.close()
     connection.close()
     return jsonArray
   }
@@ -108,7 +111,7 @@ class AnomalyClient {
               var occurence: Int = 1
               for (i <- totalAnomaly.reverse)
               {
-		val tempValue: Long = Math.round(i.toFloat)
+                val tempValue: Long = Math.round(i.toFloat)
                 val obj2: JSONObject = new JSONObject()
                 obj2.put("users", tempValue)
                 obj2.put("occurence", occurence)
@@ -349,7 +352,8 @@ class AnomalyClient {
   //API-CLIENT DATA REPO
   def getClientDataRepoFirstTable(): JSONArray = {
     val connection: Connection = Common.getConnection()
-    val sql: String = """
+    val sql: String =
+      """
       SELECT
         TO_NUMBER("ActiveDirectoryAtRisk") AS "Active Directory Group at Risk",
         TO_NUMBER("Accuracy") * 100 AS "User Access Right Accuracy",
